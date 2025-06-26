@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stylish Stopwatch - SCT_WD_2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #0f172a, #1e293b);
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    #circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 8px solid #38bdf8;
+      margin: 20px auto;
+      position: relative;
+      animation: none;
+    }
+
+    #circle .dot {
+      width: 12px;
+      height: 12px;
+      background-color: #38bdf8;
+      border-radius: 50%;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #display {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      padding: 1rem;
+      background: #1e293b;
+      color: #38bdf8;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #38bdf8;
+      text-align: center;
+      letter-spacing: 2px;
+      overflow-x: auto;
+      margin: 1rem auto;
+      max-width: 90%;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .buttons button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      background-color: #3b82f6;
+      color: white;
+      touch-action: manipulation;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .buttons button:hover {
+      background-color: #2563eb;
+      transform: scale(1.05);
+    }
+
+    #laps {
+      margin-top: 1rem;
+      max-height: 150px;
+      overflow-y: auto;
+      font-family: 'Orbitron', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>⏱️ Stylish Stopwatch</h1>
+  <div id="circle">
+    <div class="dot"></div>
+  </div>
+  <div id="display">00:00:00.000</div>
+  <div class="buttons">
+    <button onclick="start()">Start</button>
+    <button onclick="stop()">Stop</button>
+    <button onclick="reset()">Reset</button>
+    <button onclick="lap()">Lap</button>
+    <button onclick="toggleTheme()">🌗 Toggle Theme</button>
+  </div>
+  <div id="laps"></div>
+
+  <audio id="beep" src="https://assets.mixkit.co/sfx/preview/mixkit-classic-alarm-995.mp3"></audio>
+
+  <script>
+    let [hours, minutes, seconds, milliseconds] = [0, 0, 0, 0];
+    let timer = null;
+    let display;
+    let darkMode = true;
+
+    window.onload = () => {
+      display = document.getElementById("display");
+      updateDisplay();
+      document.addEventListener("keydown", handleKeys);
+    };
+
+    function updateDisplay() {
+      let h = String(hours).padStart(2, '0');
+      let m = String(minutes).padStart(2, '0');
+      let s = String(seconds).padStart(2, '0');
+      let ms = String(milliseconds).padStart(3, '0');
+      display.innerText = `${h}:${m}:${s}.${ms}`;
+    }
+
+    function start() {
+      if (timer !== null) return;
+      document.getElementById("beep").play();
+      document.getElementById("circle").style.animation = "rotate 2s linear infinite";
+      timer = setInterval(() => {
+        milliseconds += 10;
+        if (milliseconds >= 1000) {
+          milliseconds = 0;
+          seconds++;
+        }
+        if (seconds === 60) {
+          seconds = 0;
+          minutes++;
+        }
+        if (minutes === 60) {
+          minutes = 0;
+          hours++;
+        }
+        updateDisplay();
+      }, 10);
+    }
+
+    function stop() {
+      clearInterval(timer);
+      timer = null;
+      document.getElementById("beep").play();
+      document.getElementById("circle").style.animation = "none";
+    }
+
+    function reset() {
+      stop();
+      [hours, minutes, seconds, milliseconds] = [0, 0, 0, 0];
+      updateDisplay();
+      document.getElementById("laps").innerHTML = "";
+    }
+
+    function lap() {
+      if (timer !== null) {
+        let h = String(hours).padStart(2, '0');
+        let m = String(minutes).padStart(2, '0');
+        let s = String(seconds).padStart(2, '0');
+        let ms = String(milliseconds).padStart(3, '0');
+        const lapDiv = document.getElementById("laps");
+        const lapTime = document.createElement("p");
+        lapTime.innerText = `Lap: ${h}:${m}:${s}.${ms}`;
+        lapDiv.appendChild(lapTime);
+      }
+    }
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.style.background = darkMode
+        ? "linear-gradient(to right, #0f172a, #1e293b)"
+        : "linear-gradient(to right, #f9fafb, #e5e7eb)";
+      document.body.style.color = darkMode ? "#f1f5f9" : "#1f2937";
+    }
+
+    function handleKeys(e) {
+      switch (e.key.toLowerCase()) {
+        case 's': start(); break;
+        case 'p': stop(); break;
+        case 'r': reset(); break;
+        case 'l': lap(); break;
+      }
+    }
+  </script>
+</body>
+</html>
+  
